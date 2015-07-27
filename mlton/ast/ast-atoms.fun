@@ -35,6 +35,15 @@ structure Tycon =
 
 structure Var = AstId (structure Symbol = Symbol)
 
+structure Tyvar =
+   struct
+      structure Id = AstId (structure Symbol = Symbol)
+      open Id
+
+      fun isEquality var =
+        String.substring (Id.toString var, 0, 2) = "''"
+   end
+
 structure Con =
    struct
       structure Id = AstId (structure Symbol = Symbol)

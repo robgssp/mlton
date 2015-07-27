@@ -827,7 +827,7 @@ tyvarseq: tyvar                   (Vector.new1 tyvar)
               val v = Vector.fromList tyvar_pc
               val () =
                  reportDuplicates
-                 (v, {equals = Tyvar.sameName,
+                 (v, {equals = Tyvar.equals,
                       layout = Tyvar.layout,
                       name = "type variable",
                       region = Tyvar.region,
@@ -1275,8 +1275,7 @@ vids : vid                     ([vid])
 var : idEqual                  (Var.fromSymbol idEqual)
 con : id                       (Con.fromSymbol id)
 tycon : idNoAsterisk           (Tycon.fromSymbol idNoAsterisk)
-tyvar : TYVAR                  (Tyvar.newString (TYVAR, {left = TYVARleft,
-                                                         right = TYVARright}))
+tyvar : idNoAsterisk           (Tyvar.fromSymbol idNoAsterisk)
 field : id                     (Field.Symbol (#1 id))
       | int                    (let
                                    val int =

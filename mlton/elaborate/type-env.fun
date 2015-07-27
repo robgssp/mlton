@@ -1712,7 +1712,7 @@ fun close (ensure: Tyvar.t vector, ubd) =
                          let
                             fun newField f =
                                {field = f,
-                                tyvar = Tyvar.newNoname {equality = false}}
+                                tyvar = Tyvar.newNoname ()}
                             val extra =
                                let
                                   val all = ref []
@@ -1764,7 +1764,7 @@ fun close (ensure: Tyvar.t vector, ubd) =
                                            false
                                         end
                                    | SOME b => b
-                               val a = Tyvar.newNoname {equality = b}
+                               val a = Tyvar.newNonameEq b
                                val _ = List.push (tyvars, a)
                                val _ =
                                   Set.:= (s, {equality = equality,

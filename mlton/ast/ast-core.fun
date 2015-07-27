@@ -379,7 +379,7 @@ fun layoutAndsTyvars (prefix, (tyvars, xs), layoutX) =
                  | x :: xs =>
                       (if Vector.isEmpty tyvars
                           then x
-                       else seq [Tyvar.layouts tyvars, str " ", x]) :: xs),
+                       else seq [Vector.layout Tyvar.layout tyvars, str " ", x]) :: xs),
               fn (prefix, x) => seq [prefix, x])
 
 fun expNodeName e =

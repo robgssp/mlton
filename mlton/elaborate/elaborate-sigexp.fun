@@ -77,7 +77,7 @@ fun elaborateType (ty: Atype.t, E: Env.t): Tyvar.t vector * Type.t =
          case Atype.node ty of
             Atype.Var a => (* rule 44 *)
                Type.var
-               (case List.peek (!tyvars, fn a' => Tyvar.sameName (a, a')) of
+               (case List.peek (!tyvars, fn a' => Tyvar.equals (a, a')) of
                    NONE => (List.push (tyvars, a); a)
                  | SOME a => a)
           | Atype.Con (c, ts) => (* rules 46, 47 *)

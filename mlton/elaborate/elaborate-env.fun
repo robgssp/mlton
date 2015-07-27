@@ -854,7 +854,7 @@ structure Structure =
                            Kind.Arity n =>
                               Vector.tabulate
                               (n, fn _ =>
-                               Type.var (Tyvar.newNoname {equality = false}))
+                               Type.var (Tyvar.newNoname ()))
                          | Kind.Nary => Vector.new0 ()
                      val args =
                         case Vector.length tyvars of
@@ -2549,7 +2549,7 @@ fun transparentCut (E: t, S: Structure.t, I: Interface.t, {isFunctor: bool},
             val tyvars =
                Vector.tabulate
                (Vector.length tyvars', fn _ =>
-                Type.var (Tyvar.newNoname {equality = false}))
+                Type.var (Tyvar.newNoname ()))
          in
             Type.unify
             (Scheme.apply (structScheme, tyvars),
@@ -2695,7 +2695,7 @@ fun transparentCut (E: t, S: Structure.t, I: Interface.t, {isFunctor: bool},
                               Kind.Arity n =>
                                  Vector.tabulate
                                  (n, fn _ =>
-                                  Tyvar.newNoname {equality = false})
+                                  Tyvar.newNoname ())
                             | _ => Error.bug "ElaborateEnv.transparentCut.handleType: Nary tycon"
                      in
                         Scheme.make

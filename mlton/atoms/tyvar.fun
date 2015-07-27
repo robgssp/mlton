@@ -7,80 +7,43 @@
  * See the file MLton-LICENSE for details.
  *)
 
-functor Tyvar (S: TYVAR_STRUCTS): TYVAR = 
+functor Tyvar (S: TYVAR_STRUCTS): TYVAR =
 struct
 
 open S
 
-structure Wrap = Region.Wrap
-open Wrap
-type node' = {name: string,
-              equality: bool,
-              hash: Word.t,
-              plist: PropertyList.t}
-type t = node' Wrap.t
-type obj = t
+structure V = Id (val noname = "x")
+
+type t = { id: V.t, eq: bool }
+
+val noname = V.noname
 
 local
-   fun make sel (tyvar:t) = sel (node tyvar)
+   fun make (f: V.t -> 'a): t -> 'a = f o #id
 in
-   val name = make #name
-   val hash = make #hash
-   val plist = make #plist
-   val isEquality = make #equality
+   val clear = make V.clear
+   val clearPrintName = make V.clearPrintName
+   val hash = make V.hash
+   val originalName = make V.originalName
+   val plist = make V.plist
 end
 
-val toString = name
-val layout = Layout.str o toString
+fun tacks eq = if eq then "''" else "'"
 
-val clear = PropertyList.clear o plist
-fun equals (a, a') = PropertyList.equals (plist a, plist a')
-fun sameName (a, a') = String.equals (name a, name a')
+val bogus = { id = V.bogus, eq = false }
+fun equals ({ id = id1, ... }: t,
+            { id = id2, ... }: t) = V.equals (id1, id2)
+fun fromString s = { id = V.fromString s, eq = false }
+fun new { id, eq } = { id = V.new id, eq = eq }
+fun newNoname () = { id = V.newNoname (), eq = false }
+fun newString s = { id = V.newString s, eq = false }
+val printNameAlphaNumeric = V.printNameAlphaNumeric
+fun setPrintName ({ id, eq }, name) = V.setPrintName (id, name)
+fun toString { id, eq } = V.toString id ^ tacks eq
+fun layout { id, eq } =
+  Layout.seq [V.layout id, Layout.str (tacks eq)]
 
-fun newRegion ({name, equality}, region) =
-   makeRegion ({name = name,
-                equality = equality,
-                hash = Random.word (),
-                plist = PropertyList.new ()},
-               region)
-
-fun new f = newRegion (f, Region.bogus)
-
-fun newLike a = newRegion ({equality = isEquality a,
-                            name = name a},
-                           region a)
-
-fun newString (s, {left, right}) =
-   newRegion ({name = s,
-               equality = String.size s > 1
-                          andalso Char.equals (#"'", String.sub (s, 1))},
-              Region.make {left = left, right = right})
-
-(*val make = Trace.trace2 ("Tyvar.make", String.layout, Bool.layout,
- *                      layout) make
- *)
-
-local val c = Counter.new 0
-in 
-   fun reset () = Counter.reset (c, 0)
-   (* quell unused warning *)
-   val _ = reset
-   fun newNoname {equality} =
-      let
-         val name = (if equality then "''" else "'") ^
-                    "a_" ^ Int.toString (Counter.next c)
-      in
-         new {name = name, equality = equality}
-      end
-end
-
-local open Layout
-in
-   fun layouts ts =
-      case Vector.length ts of
-         0 => empty
-       | 1 => layout (Vector.sub (ts, 0))
-       | _ => Vector.layout layout ts
-end
+fun isEquality _ = false
+fun newNonameEq eq = { id = V.newNoname (), eq = eq }
 
 end

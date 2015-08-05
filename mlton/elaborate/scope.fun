@@ -12,10 +12,10 @@ struct
 open S
 open Ast
 
-structure Tyvars = UnorderedSet (UseName (Tyvar))
+structure Tyvars = UnorderedSet (Tyvar)
 structure Env =
    struct
-      structure Env = MonoEnv (structure Domain = UseName (Tyvar)
+      structure Env = MonoEnv (structure Domain = Tyvar
                                structure Range = Tyvar)
       open Env
 

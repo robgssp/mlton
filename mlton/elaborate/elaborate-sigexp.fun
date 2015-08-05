@@ -141,7 +141,7 @@ fun elaborateScheme (tyvars: Tyvar.t vector, ty: Atype.t, E): Scheme.t =
       val unbound =
          Vector.keepAll
          (tyvars', fn a =>
-          not (Vector.exists (tyvars, fn a' => Tyvar.sameName (a, a'))))
+          not (Vector.exists (tyvars, fn a' => Tyvar.equals (a, a'))))
       val ty =
          if 0 = Vector.length unbound then
             ty
@@ -176,7 +176,7 @@ fun elaborateScheme (tyvars: Tyvar.t vector, ty: Atype.t, E): Scheme.t =
       val tyvars =
          Vector.map
          (tyvars, fn a =>
-          case Vector.peek (tyvars', fn a' => Tyvar.sameName (a, a')) of
+          case Vector.peek (tyvars', fn a' => Tyvar.equals (a, a')) of
              NONE => a
            | SOME a' => a')
    in

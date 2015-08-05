@@ -291,12 +291,41 @@ structure Type =
       val var = Var
    end
 
-structure Scheme = GenericScheme (structure Type = Type
-                                  structure Tyvar = Tyvar)
-
 structure Scheme =
    struct
-      open Scheme
+      
+      type ty = Type.t
+      type tyvar = Tyvar.t
+
+      datatype t = T of {tyvars: tyvar vector,
+                         ty: ty}
+
+      local
+         fun make f (T r) = f r
+      in
+      val ty = make #ty
+      end
+
+      fun layout (T {tyvars, ty}) =
+        let open Layout
+            val ty = Type.layout ty
+        in
+           if 0 = Vector.length tyvars
+           then ty
+           else
+              align [seq [str "Forall ",
+                          Vector.layout Tyvar.layout tyvars,
+                          str "."],
+                     ty]
+        end
+
+      fun apply (T {tyvars, ty}, args) =
+        if Vector.isEmpty tyvars andalso Vector.isEmpty args
+        then ty (* Must special case this, since don't want to substitute
+                 * in monotypes.
+                 *)
+        else Type.substitute (ty, Vector.zip (tyvars, args))
+
 
       fun dest (T {ty, tyvars}) = (tyvars, ty)
 

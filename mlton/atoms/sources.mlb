@@ -71,13 +71,10 @@ local
    profile-exp.fun
    atoms.sig
    atoms.fun
-   generic-scheme.sig
-   generic-scheme.fun
    type-ops.sig
    type-ops.fun
    hash-type.sig
    hash-type.fun
-   use-name.fun
 in
    signature ADMITS_EQUALITY
    signature ATOMS
@@ -111,8 +108,6 @@ in
    functor PrimTycons
    functor Atoms
    functor Id
-   functor GenericScheme
    functor HashType
    functor TypeOps
-   functor UseName
 end

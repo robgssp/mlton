@@ -27,12 +27,7 @@ structure Env =
          let
             val (tyvars, env) =
                Vector.mapAndFold
-               (tyvars, env, fn (a, env) =>
-                let
-                   val a' = Tyvar.newLike a
-                in
-                   (a', extend (env, a, a'))
-                end)
+               (tyvars, env, fn (a, env) => (a, extend (env, a, a)))
          in
             (env, tyvars)
          end
@@ -482,7 +477,7 @@ fun scope (dec: Dec.t): Dec.t =
                      List.keepAll
                      (mayNotBind, fn a =>
                       not (Vector.exists (bound, fn a' =>
-                                          Tyvar.sameName (a, a')))
+                                          Tyvar.equals (a, a')))
                       orelse
                       let
                          open Layout
@@ -551,7 +546,7 @@ fun scope (dec: Dec.t): Dec.t =
                          Vector.keepAll
                          (tyvars, fn a =>
                           not (List.exists
-                               (domain, fn a' => Tyvar.sameName (a, a')))))
+                               (domain, fn a' => Tyvar.equals (a, a')))))
                   in
                      (env, fn () => (tyvars, ()))
                   end

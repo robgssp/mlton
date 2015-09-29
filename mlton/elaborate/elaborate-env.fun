@@ -220,7 +220,7 @@ structure Uses:
 
 structure Class =
    struct
-      datatype t = Bas | Con | Exn | Fix | Fct | Sig | Str | Typ | Var
+      datatype t = Bas | Con | Exn | Fix | Fct | Sig | Str | Typ | Tyv | Var
 
       val toString =
          fn Bas => "basis"
@@ -231,6 +231,7 @@ structure Class =
           | Sig => "signature"
           | Str => "structure"
           | Typ => "type"
+          | Tyv => "tyvar"
           | Var => "variable"
    end
 
@@ -1204,6 +1205,7 @@ structure All =
        | Sig of (Sigid.t, Interface.t) Values.t
        | Str of (Strid.t, Structure.t) Values.t
        | Tyc of (Ast.Tycon.t, TypeStr.t) Values.t
+       | Tyv of (Ast.Tyvar.t, Tyvar.t) Values.t
        | Val of (Ast.Vid.t, Vid.t * Scheme.t option) Values.t
 
       val basOpt = fn Bas z => SOME z | _ => NONE
@@ -1212,6 +1214,7 @@ structure All =
       val sigOpt = fn Sig z => SOME z | _ => NONE
       val strOpt = fn Str z => SOME z | _ => NONE
       val tycOpt = fn Tyc z => SOME z | _ => NONE
+      val tyvOpt = fn Tyv z => SOME z | _ => NONE
       val valOpt = fn Val z => SOME z | _ => NONE
    end
 
@@ -1232,6 +1235,7 @@ datatype t =
           *)
          topSymbols: Symbol.t list ref,
          types: (Ast.Tycon.t, TypeStr.t) NameSpace.t,
+         tyvars: (Ast.Tyvar.t, CoreML.Tyvar.t) NameSpace.t,
          vals: (Ast.Vid.t, Vid.t * Scheme.t option) NameSpace.t}
 
 fun sizeMessage (E: t): Layout.t =
@@ -1291,6 +1295,8 @@ fun empty () =
                        All.strOpt, All.Str)
       val types = make (fn _ => Class.Typ, Ast.Tycon.region, Ast.Tycon.toSymbol,
                         All.tycOpt, All.Tyc)
+      val tyvars = make (fn _ => Class.Tyv, Ast.Tyvar.region, Ast.Tyvar.toSymbol,
+                         All.tyvOpt, All.Tyv)
       val vals = make (Vid.class o #1, Ast.Vid.region, Ast.Vid.toSymbol,
                        All.valOpt, All.Val)
       local
@@ -1330,11 +1336,12 @@ fun empty () =
          strs = strs,
          topSymbols = topSymbols,
          types = types,
+         tyvars = tyvars,
          vals = vals}
    end
 
 local
-   fun foreach (T {lookup, ...}, s, {bass, fcts, fixs, sigs, strs, types, vals}) =
+   fun foreach (T {lookup, ...}, s, {bass, fcts, fixs, sigs, strs, types, tyvars, vals}) =
       List.foreach
       (! (lookup s), fn a =>
        let
@@ -1347,6 +1354,7 @@ local
            | Sig vs => sigs vs
            | Str vs => strs vs
            | Tyc vs => types vs
+           | Tyv vs => tyvars vs
            | Val vs => vals vs
        end)
 in
@@ -1367,6 +1375,7 @@ fun collect (E,
       val sigs = ref []
       val strs = ref []
       val types = ref []
+      val tyvars = ref []
       val vals = ref []
       fun doit ac vs =
          case Values.! vs of
@@ -1382,6 +1391,7 @@ fun collect (E,
                                    sigs = doit sigs,
                                    strs = doit strs,
                                    types = doit types,
+                                   tyvars = doit tyvars,
                                    vals = doit vals})
       fun ('a, 'b) finish (r, toSymbol: 'a -> Symbol.t) =
          let
@@ -1645,6 +1655,7 @@ fun forceUsed E =
               sigs = doit ignore,
               strs = doit Structure.forceUsed,
               types = doit ignore,
+              tyvars = doit ignore,
               vals = doit ignore})
    in
       ()
@@ -2079,29 +2090,29 @@ val extend:
    end
 
 local
-   val extend =
-      fn (E as T (fields as {currentScope, ...}), get,
-          domain: 'a,
-          range: 'b,
-          forceUsed: bool,
-          uses: 'a ExtendUses.t) =>
-      let
-         val ns = get fields
-      in
-         extend (E, ns, {domain = domain,
-                         forceUsed = forceUsed,
-                         range = range,
-                         scope = !currentScope,
-                         time = Time.next (),
-                         uses = uses})
-      end
+   fun extend' (E as T (fields as {currentScope, ...}),
+                get,
+                domain: 'a,
+                range: 'b,
+                forceUsed: bool,
+                uses: 'a ExtendUses.t) =
+     let
+        val ns = get fields
+     in
+        extend (E, ns, {domain = domain,
+                        forceUsed = forceUsed,
+                        range = range,
+                        scope = !currentScope,
+                        time = Time.next (),
+                        uses = uses})
+     end
 in
-   fun extendBasid (E, d, r) = extend (E, #bass, d, r, false, ExtendUses.New)
-   fun extendFctid (E, d, r) = extend (E, #fcts, d, r, false, ExtendUses.New)
-   fun extendFix (E, d, r) = extend (E, #fixs, d, r, false, ExtendUses.New)
-   fun extendSigid (E, d, r) = extend (E, #sigs, d, r, false, ExtendUses.New)
-   fun extendStrid (E, d, r) = extend (E, #strs, d, r, false, ExtendUses.New)
-   fun extendVals (E, d, r, eu) = extend (E, #vals, d, r, false, eu)
+   fun extendBasid (E, d, r) = extend' (E, #bass, d, r, false, ExtendUses.New)
+   fun extendFctid (E, d, r) = extend' (E, #fcts, d, r, false, ExtendUses.New)
+   fun extendFix (E, d, r) = extend' (E, #fixs, d, r, false, ExtendUses.New)
+   fun extendSigid (E, d, r) = extend' (E, #sigs, d, r, false, ExtendUses.New)
+   fun extendStrid (E, d, r) = extend' (E, #strs, d, r, false, ExtendUses.New)
+   fun extendVals (E, d, r, eu) = extend' (E, #vals, d, r, false, eu)
    fun extendTycon (E, d, s, {forceUsed, isRebind}) =
       let
          val () =
@@ -2118,11 +2129,12 @@ in
                 | _ => ()
             end
          val _ =
-            extend (E, #types, d, s, forceUsed,
-                    ExtendUses.fromIsRebind {isRebind = isRebind})
+            extend' (E, #types, d, s, forceUsed,
+                     ExtendUses.fromIsRebind {isRebind = isRebind})
       in
          ()
       end
+   fun extendTyvar (E, t, t') = extend' (E, #tyvars, t, t', false, ExtendUses.New)
 end
 
 fun extendExn (E, c, c', s) =
@@ -2324,7 +2336,7 @@ fun makeBasis (T {currentScope, bass, fcts, fixs, sigs, strs, types, vals, ...},
       (res, B)
    end
 
-fun scope (T {currentScope, fixs, strs, types, vals, ...}, th) =
+fun scope (T {currentScope, fixs, strs, types, tyvars, vals, ...}, th) =
    let
       fun doit (NameSpace.T {current, ...}) =
          let
@@ -2339,14 +2351,15 @@ fun scope (T {currentScope, fixs, strs, types, vals, ...}, th) =
       val s = doit strs
       val t = doit types
       val v = doit vals
+      val tv = doit tyvars
       val res = th ()
-      val _ = (f (); s (); t (); v ())
+      val _ = (f (); s (); t (); v (); tv ())
       val _ = currentScope := s0
    in
       res
    end
 
-fun scopeAll (T {currentScope, bass, fcts, fixs, sigs, strs, types, vals, ...}, th) =
+fun scopeAll (T {currentScope, bass, fcts, fixs, sigs, strs, types, tyvars, vals, ...}, th) =
    let
       fun doit (NameSpace.T {current, ...}) =
          let
@@ -2363,9 +2376,10 @@ fun scopeAll (T {currentScope, bass, fcts, fixs, sigs, strs, types, vals, ...}, 
       val si = doit sigs
       val s = doit strs
       val t = doit types
+      val tv = doit tyvars
       val v = doit vals
       val res = th ()
-      val _ = (b (); fc (); f (); si (); s (); t (); v ())
+      val _ = (b (); fc (); f (); si (); s (); t (); tv (); v ())
       val _ = currentScope := s0
    in
       res
@@ -3093,7 +3107,7 @@ val cut =
 (*                  functorClosure                   *)
 (* ------------------------------------------------- *)
 
-fun snapshot (E as T {currentScope, bass, fcts, fixs, sigs, strs, types, vals, ...})
+fun snapshot (E as T {currentScope, bass, fcts, fixs, sigs, strs, types, tyvars, vals, ...})
    : (unit -> 'a) -> 'a =
    let
       val add: (Scope.t -> unit) list ref = ref []
@@ -3117,6 +3131,7 @@ fun snapshot (E as T {currentScope, bass, fcts, fixs, sigs, strs, types, vals, .
                                     sigs = doit sigs,
                                     strs = doit strs,
                                     types = doit types,
+                                    tyvars = doit tyvars,
                                     vals = doit vals})
    in
       fn th =>
@@ -3161,6 +3176,7 @@ fun snapshot (E as T {currentScope, bass, fcts, fixs, sigs, strs, types, vals, .
                                       sigs = doit,
                                       strs = doit,
                                       types = doit,
+                                      tyvars = doit,
                                       vals = doit})
          val s1 = !currentScope
          val _ = currentScope := s0

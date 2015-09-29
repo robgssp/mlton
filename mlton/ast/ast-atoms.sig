@@ -89,8 +89,8 @@ signature AST_ATOMS =
 
       sharing Symbol = Basid.Symbol = Con.Symbol = Fctid.Symbol = Longcon.Symbol
          = Longstrid.Symbol = Longtycon.Symbol = Longvar.Symbol = Longvid.Symbol
-              = Sigid.Symbol = Strid.Symbol = Tycon.Symbol = Tyvar.Symbol
-              = Vid.Symbol = Var.Symbol
+         = Sigid.Symbol = Strid.Symbol = Tycon.Symbol = Tyvar.Symbol
+         = Vid.Symbol = Var.Symbol
 
       structure Type:
          sig

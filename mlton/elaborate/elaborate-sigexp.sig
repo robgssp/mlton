@@ -9,8 +9,10 @@
 signature ELABORATE_SIGEXP_STRUCTS = 
    sig
       structure Ast: AST
+      structure CoreML: CORE_ML
       structure Env: ELABORATE_ENV
       sharing Ast = Env.Ast
+      sharing CoreML = Env.CoreML
    end
 
 signature ELABORATE_SIGEXP = 

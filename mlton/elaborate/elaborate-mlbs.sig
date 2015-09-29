@@ -13,7 +13,6 @@ signature ELABORATE_MLBS_STRUCTS =
       structure Decs: DECS
       structure Env: ELABORATE_ENV
       sharing Ast = Env.Ast
-      sharing Ast.Tyvar = CoreML.Tyvar
       sharing CoreML = Decs.CoreML = Env.CoreML
       sharing Decs = Env.Decs
    end

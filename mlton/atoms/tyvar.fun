@@ -30,18 +30,23 @@ end
 
 fun tacks eq = if eq then "''" else "'"
 
+fun stringEq s = String.hasPrefix (s, {prefix = "''"})
+fun dropTacks s = if stringEq s
+                  then String.extract (s, 2, NONE)
+                  else String.extract (s, 1, NONE)
+
 val bogus = { id = V.bogus, eq = false }
 fun equals ({ id = id1, ... }: t,
             { id = id2, ... }: t) = V.equals (id1, id2)
-fun fromString s = { id = V.fromString s, eq = false }
+fun fromString s = { id = V.fromString (dropTacks s), eq = stringEq s }
 fun new { id, eq } = { id = V.new id, eq = eq }
 fun newNoname () = { id = V.newNoname (), eq = false }
-fun newString s = { id = V.newString s, eq = false }
+fun newString s = { id = V.newString (dropTacks s), eq = stringEq s }
 val printNameAlphaNumeric = V.printNameAlphaNumeric
 fun setPrintName ({ id, eq }, name) = V.setPrintName (id, name)
-fun toString { id, eq } = V.toString id ^ tacks eq
+fun toString { id, eq } = tacks eq ^ V.toString id 
 fun layout { id, eq } =
-  Layout.seq [V.layout id, Layout.str (tacks eq)]
+  Layout.seq [ Layout.str (tacks eq), V.layout id ]
 
 fun isEquality _ = false
 fun newNonameEq eq = { id = V.newNoname (), eq = eq }

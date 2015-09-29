@@ -19,9 +19,10 @@ in
    structure Longtycon = Longtycon
    structure Record = SortedRecord
    structure Strid = Strid
-   structure Tyvar = Tyvar
    structure Vid = Vid
 end
+
+structure Tyvar = CoreML.Tyvar
 
 structure Field = Record.Field
 

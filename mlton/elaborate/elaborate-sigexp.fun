@@ -25,7 +25,7 @@ in
    structure SortedRecord = SortedRecord
    structure Spec = Spec
    structure TypBind = TypBind
-   structure Tyvar = Tyvar
+   structure Atyvar = Tyvar
 end
 
 local
@@ -50,6 +50,8 @@ in
    structure TypeStr = TypeStr
 end
 
+structure Ctyvar = CoreML.Tyvar
+
 local
    open Control.Elaborate
 in
@@ -70,15 +72,18 @@ in
          end
 end
 
-fun elaborateType (ty: Atype.t, E: Env.t): Tyvar.t vector * Type.t =
+fun elaborateType (ty: Atype.t, E: Env.t): Ctyvar.t vector * Type.t =
    let
       val tyvars = ref []
       fun loop (ty: Atype.t): Type.t =
          case Atype.node ty of
             Atype.Var a => (* rule 44 *)
                Type.var
-               (case List.peek (!tyvars, fn a' => Tyvar.equals (a, a')) of
-                   NONE => (List.push (tyvars, a); a)
+               (case List.peek (!tyvars, fn a' => Atyvar.toString a = Ctyvar.toString a') of
+                   NONE => let val a' = Ctyvar.newString (Atyvar.toString a)
+                               val _ = List.push (tyvars, a')
+                           in a'
+                           end
                  | SOME a => a)
           | Atype.Con (c, ts) => (* rules 46, 47 *)
                let
@@ -135,13 +140,15 @@ val elaborateType =
    Trace.trace ("ElaborateSigexp.elaborateType", Atype.layout o #1, Type.layout o #2)
    elaborateType
 
-fun elaborateScheme (tyvars: Tyvar.t vector, ty: Atype.t, E): Scheme.t =
+fun elaborateScheme (tyvars: Atyvar.t vector, ty: Atype.t, E): Scheme.t =
    let
       val (tyvars', ty) = elaborateType (ty, E)
       val unbound =
          Vector.keepAll
          (tyvars', fn a =>
-          not (Vector.exists (tyvars, fn a' => Tyvar.equals (a, a'))))
+                      not (Vector.exists
+                              (tyvars, fn a' => Ctyvar.toString a
+                                                = Atyvar.toString a')))
       val ty =
          if 0 = Vector.length unbound then
             ty
@@ -149,7 +156,7 @@ fun elaborateScheme (tyvars: Tyvar.t vector, ty: Atype.t, E): Scheme.t =
             let
                open Layout
                val () =
-                  Control.error (Tyvar.region (Vector.sub (tyvars', 0)),
+                   Control.error (Atype.region ty,
                                  seq [str (concat ["undefined type variable",
                                                    if Vector.length unbound > 1
                                                       then "s"
@@ -157,11 +164,11 @@ fun elaborateScheme (tyvars: Tyvar.t vector, ty: Atype.t, E): Scheme.t =
                                                       ": "]),
                                       seq (separate
                                            (Vector.toListMap (unbound,
-                                                              Tyvar.layout),
+                                                              Atyvar.layout),
                                             ", "))],
                                  empty)
                fun var a =
-                  if Vector.exists (unbound, fn a' => Tyvar.equals (a, a')) then
+                  if Vector.exists (unbound, fn a' => Atyvar.equals (a, a')) then
                      Type.bogus
                   else
                      Type.var a
@@ -176,7 +183,7 @@ fun elaborateScheme (tyvars: Tyvar.t vector, ty: Atype.t, E): Scheme.t =
       val tyvars =
          Vector.map
          (tyvars, fn a =>
-          case Vector.peek (tyvars', fn a' => Tyvar.equals (a, a')) of
+          case Vector.peek (tyvars', fn a' => Atyvar.equals (a, a')) of
              NONE => a
            | SOME a' => a')
    in
@@ -184,7 +191,7 @@ fun elaborateScheme (tyvars: Tyvar.t vector, ty: Atype.t, E): Scheme.t =
    end
 
 fun elaborateTypedescs (typedescs: {tycon: Ast.Tycon.t,
-                                    tyvars: Tyvar.t vector} vector,
+                                    tyvars: Atyvar.t vector} vector,
                         {equality: bool},
                         E): unit =
    Vector.foreach

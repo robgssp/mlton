@@ -42,6 +42,7 @@ in
 end
 
 structure ElaborateSigexp = ElaborateSigexp (structure Ast = Ast
+                                             structure CoreML = CoreML
                                              structure Env = Env)
 
 structure ElaborateCore = ElaborateCore (structure Ast = Ast

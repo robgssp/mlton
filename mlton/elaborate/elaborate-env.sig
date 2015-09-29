@@ -89,6 +89,7 @@ signature ELABORATE_ENV =
       sharing TypeStr.Tycon = CoreML.Tycon
       structure Interface: INTERFACE
       sharing Interface.Ast = Ast
+      sharing Interface.CoreML  = CoreML
       sharing Interface.EnvTypeStr = TypeStr
       structure Structure:
          sig

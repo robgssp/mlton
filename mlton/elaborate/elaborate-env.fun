@@ -412,6 +412,7 @@ in
 end
 
 structure Interface = Interface (structure Ast = Ast
+                                 structure CoreML = CoreML
                                  structure EnvTypeStr = TypeStr)
 
 local

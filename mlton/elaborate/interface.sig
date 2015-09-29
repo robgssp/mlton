@@ -9,6 +9,7 @@
 signature INTERFACE_STRUCTS = 
    sig
       structure Ast: AST
+      structure CoreML: CORE_ML
       structure EnvTypeStr:
          sig
             structure AdmitsEquality: ADMITS_EQUALITY
@@ -72,7 +73,7 @@ signature INTERFACE =
          sig
             type t
          end
-      sharing Tyvar = Ast.Tyvar
+      sharing Tyvar = CoreML.Tyvar
       structure Record: RECORD
       sharing Record = Ast.SortedRecord
       structure Type:

@@ -2022,9 +2022,9 @@ fun elaborateDec (d, {env = E, nest}) =
                              in
                                 Decs.empty
                              end)
-				 | Adec.DoDec exp =>
+                 | Adec.DoDec exp =>
                       (check (ElabControl.allowDoDecls, "allowDoDecls", Aexp.region exp)
-					  ; let
+                      ; let
                          fun lay () =		
                             let		
                                open Layout		
@@ -2037,7 +2037,7 @@ fun elaborateDec (d, {env = E, nest}) =
                          val pat = Apat.wild		
                          val (pat, _) =		
                                    elaboratePat (pat, E, {bind = false,		
-                                                          isRvb = false}, preError)		
+                                                          isRvb = false}, preError)
                          val patRegion = Region.bogus		
                          val exp' = elabExp (exp, nest, NONE)		
                          val bound = fn () => Vector.new0 ()		
@@ -2046,7 +2046,7 @@ fun elaborateDec (d, {env = E, nest}) =
                             (Cexp.ty exp', Type.unit, fn (l1, _) =>		
                             (Aexp.region exp,		
                                str "do declaration not of type unit",		
-                               align [seq [str "do declaration type: ", l1], lay ()]))		
+                               align [seq [str "do declaration type: ", l1], lay ()]))
                          val vbs = {exp = exp',		
                                     lay = lay,		
                                     nest = nest,		
@@ -2054,7 +2054,7 @@ fun elaborateDec (d, {env = E, nest}) =
                                     patRegion = patRegion}		
                       in		
                          Decs.single		
-                         (Cdec.Val {nonexhaustiveExnMatch = nonexhaustiveExnMatch (),		
+                         (Cdec.Val {nonexhaustiveExnMatch = nonexhaustiveExnMatch (),
                                     nonexhaustiveMatch = nonexhaustiveMatch (),		
                                     rvbs = Vector.new0 (),		
                                     tyvars = bound,		

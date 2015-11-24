@@ -49,6 +49,7 @@ in
    structure Amatch = Match
    structure Apat = Pat
    structure Atype = Type
+   structure Atyvar = Tyvar
    structure Avar = Var
    structure Avid = Vid
    structure DatatypeRhs = DatatypeRhs
@@ -103,6 +104,7 @@ in
    structure ConstType = Const.ConstType
    structure Cdec = Dec
    structure Cexp = Exp
+   structure Ctyvar = Tyvar
    structure Ffi = Ffi
    structure IntSize = IntSize
    structure Lambda = Lambda
@@ -112,7 +114,6 @@ in
    structure RealX = RealX
    structure SourceInfo = SourceInfo
    structure Tycon = Tycon
-   structure Tyvar = Tyvar
    structure Var = Var
    structure WordSize = WordSize
    structure WordX = WordX
@@ -164,7 +165,7 @@ fun elaborateType (ty: Atype.t, lookup: Lookup.t): Type.t =
       fun loop (ty: Atype.t): Type.t =
          case Atype.node ty of
             Atype.Var a => (* rule 44 *)
-               Type.var a
+               Type.var (Ctyvar.fromString (Atyvar.toString a))
           | Atype.Con (c, ts) => (* rules 46, 47 *)
                let
                   val ts = Vector.map (ts, loop)

@@ -156,7 +156,7 @@ fun elaborateScheme (tyvars: Atyvar.t vector, ty: Atype.t, E): Scheme.t =
             let
                open Layout
                val () =
-                   Control.error (Atype.region ty,
+                  Control.error (Atyvar.region (Vector.sub (tyvars, 0)),
                                  seq [str (concat ["undefined type variable",
                                                    if Vector.length unbound > 1
                                                       then "s"
@@ -164,11 +164,11 @@ fun elaborateScheme (tyvars: Atyvar.t vector, ty: Atype.t, E): Scheme.t =
                                                       ": "]),
                                       seq (separate
                                            (Vector.toListMap (unbound,
-                                                              Atyvar.layout),
+                                                              Ctyvar.layout),
                                             ", "))],
                                  empty)
                fun var a =
-                  if Vector.exists (unbound, fn a' => Atyvar.equals (a, a')) then
+                  if Vector.exists (unbound, fn a' => Ctyvar.equals (a, a')) then
                      Type.bogus
                   else
                      Type.var a
@@ -183,8 +183,8 @@ fun elaborateScheme (tyvars: Atyvar.t vector, ty: Atype.t, E): Scheme.t =
       val tyvars =
          Vector.map
          (tyvars, fn a =>
-          case Vector.peek (tyvars', fn a' => Atyvar.equals (a, a')) of
-             NONE => a
+          case Vector.peek (tyvars', fn a' => Atyvar.toString a = Ctyvar.toString a') of
+             NONE => Ctyvar.bogus
            | SOME a' => a')
    in
       Scheme.make (tyvars, ty)
@@ -219,7 +219,8 @@ fun elabTypBind (typBind: TypBind.t, E) =
          (types, fn {def, tyvars, ...} =>
           (let
               val (_, ty) = elaborateType (def, E)
-              val scheme = Scheme.make (tyvars, ty)
+              val tyvars' = Vector.map (tyvars, fn tv => Ctyvar.fromString (Atyvar.toString tv))
+              val scheme = Scheme.make (tyvars', ty)
            in
               TypeStr.def (scheme, Kind.Arity (Vector.length tyvars))
            end))
@@ -275,13 +276,15 @@ fun elaborateDatBind (datBind: DatBind.t, E): unit =
                       {con = name,
                        arg = makeArg scheme})
                   end))
+             val tyvars' = Vector.map (tyvars, fn tv => Ctyvar.fromString
+                                                           (Atyvar.toString tv))
           in
              {consArgs = consArgs,
               consSchemes = consSchemes,
               kind = kind,
               name = name,
               tycon = tycon,
-              tyvars = tyvars}
+              tyvars = tyvars'}
           end)
       val _ = Env.allowDuplicates := true
       val _ =
